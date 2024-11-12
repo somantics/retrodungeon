@@ -1,6 +1,6 @@
 [package]
-name = "ecs"
-version = "0.1.0"
+name = "retrodungeon"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
@@ -11,7 +11,7 @@ serde = { version = "1.0.210", features = ["derive"] }
 serde_yaml = "0.9.34"
 derive_entity_template = { path = "lib/derive_entity_template" }
 priority-queue = "2.1.1"
-slint = { version = "1.8.0", default-features = false, features = ["backend-winit", "renderer-skia", "compat-1-2"] }
+slint = { version = "1.8.0", default-features = false, features = ["backend-winit", "compat-1-2"] }
 num = "0.4.3"
 itertools = "0.13.0"
 log = "0.4.22"
@@ -21,3 +21,7 @@ simplelog = "0.12.2"
 
 [build-dependencies]
 slint-build = "1.8.0"
+
+[features]
+femtovg = ["slint/renderer-femtovg"]
+skia = ["slint/renderer-skia"]
