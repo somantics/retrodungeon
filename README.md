@@ -8,7 +8,14 @@ I wrote this project to learn about entity component systems and to learn the ru
 ## Build instructions
 These instructions have been tested on rust 1.82. 
 
-When building, please speficy a backend you wish to use, either skia or FemtoVG. skia is prefered, though may be more annoying to build, especially when crossbuilding for a windows platform. 
+For environment with access to bash, simply run the build.sh script which will compile with cargo and move the game data to the proper folder. 
+You may run into issues building the default skia backend, in which case you may edit the script or build manually FemtoVG backed. 
+
+NOTE: build.sh is the one you want, not build.rs, which is used internally by cargo.
+
+### Manual build (or specifying alternative backend)
+
+When building manually, please speficy a backend you wish to use, either skia or FemtoVG. skia is prefered, though may be more annoying to build. 
 ```
 cargo build --release --features skia
 ```
@@ -22,6 +29,9 @@ Enabling both features leaves the decision of which to use up to the slint runti
 ```
 cargo build --release --features "femtovg skia"
 ```
+After compiling with cargo you need to copy the contents of the data folder into a data folder in your build directory (target/release/ by default).
+
+You can also modify the bash build script by simply replacing the line that calls cargo with the lines above. 
 
 ## Dependencies
 Femtosvg requires OpenGL2.0. 
