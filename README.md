@@ -6,7 +6,7 @@ All spawn tables, all entities, all event interactions are specified in yaml for
 I wrote this project to learn about entity component systems and to learn the rust programming language. For a look at what my first attempts looked like, check out the [rust-game](https://github.com/somantics/rust-game) project. This project represents whan I could do after rewriting the base after a 6 month internship at a mobile game company, Turborilla. 
 
 ## Build instructions
-These instructions have been tested on rust 1.82. 
+These instructions have been tested on rust 1.82. Get it [here](https://www.rust-lang.org/tools/install).
 
 For environment with access to bash, simply run the build.sh script which will compile with cargo and move the game data to the proper folder. 
 You may run into issues building the default skia backend, in which case you may edit the script or build manually FemtoVG backed. 
