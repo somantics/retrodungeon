@@ -1,0 +1,40 @@
+room templates need to be spread among themes:
+
+bat
+
+wolf
+
+skeleton
+
+mage
+
+treasure
+
+
+wolf does not combine with others
+
+
+
+depth 1:
+
+lone bat
+
+lone wolf
+
+lone corpse
+
+gold pile room
+
+wolf colony
+
+bat and treasure room
+
+depth 2:
+
+chest room
+
+lone skeleton room
+
+depth 3:
+
+

@@ -1,0 +1,68 @@
+what interact events do I want?
+
+
+open door/chest
+
+close door
+
+unlock door/chest
+
+pickup item
+
+from spells:
+
+	remote open door/chest
+	remote close door
+	remote pickup item
+
+
+
+when I'm calling interact, how do I know which one I'm calling?
+option A:
+	caller decides
+	requires input differentiation or designing so that inputs are unambiguous
+	works well with how events are structured (with events targetting response types)
+option B: 
+	receiver decides
+	requires the receiver to be on one single type
+	differentiation must happen in the response function on the receiver
+
+
+close object:
+	close command sent from player
+	send interact to object
+		payload: no code
+	response disambiguates (hopefully) to close
+	repsponse performs action
+* issue here: same event is used for open and close, so no dedicated "close" command possible
+	this might be a benefit, not a problem
+
+bump open:
+	bump a solid object
+	send interact to object
+		payload: no code
+	response disambiguates to open
+	response performs opening code
+
+pickup item:
+	bump walkable object
+	send interact to object
+		payload: no code
+	response disambiguates to pickup
+	response gives inventory and self destructs entity
+
+pick pocket:
+	bump object
+	send thiefskill to object
+		payload: pickpocket
+	response decorates with arguments
+	response calls pickpocket
+
+unlock door/chest
+	bump solid object
+	object is locked
+	send thiefskill to object
+		payload: lockpick
+	response decorates with arguments
+	response calls lockpick
+	

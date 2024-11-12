@@ -1,0 +1,915 @@
+import { VerticalBox, HorizontalBox, Button, ProgressIndicator } from "std-widgets.slint";
+global TileImages {
+  in-out property <[image]> images_by_index: [
+      @image-url("assets/icons/tile008.png"), // 0: floor
+      @image-url("assets/icons/tile011.png"), // cracked floor
+      @image-url("assets/icons/tile017.png"), // wall
+      @image-url("assets/icons/tile148.png"),
+      @image-url("assets/icons/tile031.png"), // starry space
+      @image-url("assets/icons/tile035.png"), // 5:
+      @image-url("assets/icons/tile165.png"), // weird doggo
+      @image-url("assets/icons/tile032.png"), // closed chest
+      @image-url("assets/icons/tile033.png"), // opened chest
+      @image-url("assets/icons/tile025.png"), // closed door
+      @image-url("assets/icons/tile025d.png"), // 10: opened "door"
+      @image-url("assets/icons/tile166.png"), // the heavy
+      @image-url("assets/icons/tile151.png"), // the pew pew
+      @image-url("assets/icons/tile178.png"), // the pew pew pet
+      @image-url("assets/icons/tile130.png"), // random corpse
+      @image-url("assets/icons/tile121.png"), // 15: gold pile
+      @image-url("assets/icons/tile013.png"), // stairs down
+      @image-url("assets/icons/tile027.png"), // spikes
+      @image-url("assets/icons/simplefire.png"), // open flame
+      @image-url("assets/icons/burning2.png"), // sparks
+      @image-url("assets/icons/tile152.png"), // 20 little rat
+      @image-url("assets/icons/tile153.png"), // little bugs
+      @image-url("assets/icons/tile160.png"), // big mushrooms
+      @image-url("assets/icons/tile162.png"), // bat
+      @image-url("assets/icons/tile030.png"), // acid
+  ];
+}
+
+global IconImages {
+  in-out property <[image]> images_by_index: [
+      @image-url("assets/icons/Icon27.png"),           // 0: invis
+      @image-url("assets/icons/Icon27b.png"),          //
+      @image-url("assets/icons/paladin/Icon12.png"),   // levitate
+      @image-url("assets/icons/paladin/Icon12b.png"),  //
+      @image-url("assets/icons/paladin/Icon2.png"),    // heal
+      @image-url("assets/icons/paladin/Icon2b.png"),   // 5:
+      @image-url("assets/icons/paladin/Icon8.png"),    // stoneskin
+      @image-url("assets/icons/paladin/Icon8b.png"),   // 
+      @image-url("assets/icons/paladin/Icon35.png"),   // resist fire
+      @image-url("assets/icons/paladin/Icon35b.png"),  // 
+      @image-url("assets/icons/Icon21.png"),   // 10: flaming fist
+      @image-url("assets/icons/Icon21b.png"),  // 
+      @image-url("assets/icons/Icon31.png"),   // weaken armor
+      @image-url("assets/icons/Icon31b.png"),  // 
+      
+  ];
+}
+
+global UIImages {
+  in-out property <[image]> images_by_index: [
+      @image-url("assets/icons/tile208.png"), //0
+      
+  ];
+}
+
+
+export enum InputCommand { 
+  Direction, Position, Shoot, Wait, Quit, Restart, LevelUp, Descend, CloseDoors, Start, Spell, ForceShoot, ForceAttack
+ } 
+
+struct TileGraphics {
+  image_ids: [int],
+}
+
+component MapTile inherits Rectangle {
+  callback clicked();
+  callback right-clicked();
+  callback ctrl-right-clicked();
+
+  in property <TileGraphics> images;
+
+  in property <int> grid_x;
+  in property <int> grid_y;
+
+  in property <length> size;
+
+  x: grid_x * size;
+  y: grid_y * size;
+  width: size;
+  height: size;
+
+  for id[i] in images.image_ids : Image {
+      source: TileImages.images_by_index[id];
+      width: parent.width;
+      height: parent.height;
+      z: 0;
+  }
+
+  inputArea := TouchArea {
+    pointer-event(PointerEvent) => {
+      if (PointerEvent.kind != PointerEventKind.down) {
+        return;
+      }
+
+      if (PointerEvent.button == PointerEventButton.right && PointerEvent.modifiers.control) {
+        root.ctrl-right-clicked();
+      } else  if (PointerEvent.button == PointerEventButton.right) {
+        root.right-clicked();
+      } else  if (PointerEvent.button == PointerEventButton.left) {
+        root.clicked();
+      }
+    }
+  }
+}
+
+component GameMap inherits Rectangle {
+  in property <int> grid_width;
+  in property <int> grid_height;
+  in property <length> tile_size;
+  in property <bool> spell-mode;
+
+  in property <[TileGraphics]> memory_tiles;
+
+  callback received_input(InputCommand, int, int);
+
+  
+
+  x: 0;
+  y: 0;
+  height: grid_height * tile-size;
+  width: grid_width * tile-size;
+
+  scope := TouchArea {
+    for tile[i] in memory_tiles : MapTile {
+      grid_x: mod(i, grid_width);
+      grid_y: floor(i / grid_width);
+      size: tile_size;
+  
+      images: tile;
+
+      clicked => {
+        if root.spell-mode {
+          root.received_input(InputCommand.Spell, self.grid_x, self.grid_y)
+        } else {
+          root.received-input(InputCommand.Position, self.grid_x, self.grid_y)
+        }
+      }
+
+      right-clicked => {
+        root.received-input(InputCommand.Shoot, self.grid_x, self.grid_y);
+      }
+
+      ctrl-right-clicked => {
+        root.received-input(InputCommand.ForceShoot, self.grid_x, self.grid_y);
+      }
+    }
+    
+  }
+}
+
+component SpellListing inherits Rectangle {
+  in property <int> index;
+  in property <string> spell_name;
+  in property <[int]> spell_casts;
+  in property <[int]> spell_damages;
+
+  in property <length> size;
+  in property <color> text-color;
+  property <length> my-padding: 8px;
+  VerticalLayout {
+    Rectangle {
+      Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: text-color;
+        font-size: 14pt;
+        text: spell_name + " (" + (index + 1) + ")";
+      }
+    }
+    Rectangle {
+      Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: text-color;
+        font-size: 12pt;
+        text: "Casts: " + spell_casts[0] + " / " + spell_casts[1];
+      }
+    }
+    Rectangle {
+      visible: spell_damages.length > 0;
+      Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: text-color;
+        font-size: 12pt;
+        text: "Damage: " + spell_damages[0] + " - " + spell_damages[1];
+      }
+    }
+  }
+}
+
+component SpellInventory inherits Rectangle {
+
+  in property <[string]> spell_names;
+  in property <[[int]]> spell_casts;
+  in property <[[int]]> spell_damages;
+
+  callback received_input(InputCommand, int, int);
+  VerticalLayout {
+    for image[i] in spell_names : SpellListing {
+      index: i;
+      spell_name: spell_names[i];
+      spell_casts: spell_casts[i];
+      spell_damages: spell_damages[i];
+  
+      text-color: #B8CD55;
+    }
+  }
+}
+
+
+component StatsDisplay inherits Rectangle {
+  in property <string> character-name;
+  in property <int> level;
+  in property <int> depth;
+  in property <int> current-hp;
+  in property <int> max-hp;
+  in property <int> coins;
+  in property <int> current-xp;
+  in property <int> max-xp;
+  in property <int> might;
+  in property <int> wit;
+  in property <int> skill;
+  in property <int> melee-min-damage;
+  in property <int> melee-max-damage;
+  in property <int> ranged-min-damage;
+  in property <int> ranged-max-damage;
+  in property <float> melee-crit-chance;
+  in property <float> ranged-crit-chance;
+  
+  in property <[string]> spell_names;
+  in property <[[int]]> spell_casts;
+  in property <[[int]]> spell_damages;
+
+  property <int> old_xp_max: root.max-xp - root.level * 100;
+  
+  callback received_input(InputCommand, int, int);
+
+  VerticalLayout {
+    spacing: 4px;
+    // Name
+    Rectangle {
+      name := Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 14pt;
+        text: root.character-name;
+
+      }
+    }
+    // Level 
+    Rectangle {
+      HorizontalLayout {
+        level := Text {
+          horizontal-alignment: left;
+          width: 50%;
+          color: #B8CD55;
+          font-size: 14pt;
+          text: "Level " + root.level;
+        }
+        Text {
+          width: 50%;
+          color: #B8CD55;
+          font-size: 14pt;
+          text: "Depth " + root.depth;
+        }
+      }
+      
+    }
+    // HP bar
+    Rectangle {
+      HorizontalLayout {
+        Text {
+          width: 25%;
+          color: #B8CD55;
+          font-size: 14pt;
+          text: "HP";
+        }
+        Text {
+          width: 50%;
+          color: #B8CD55;
+          font-size: 14pt;
+          text: current-hp + " / " + max-hp;
+        }
+      }
+    }
+    Rectangle {
+      HorizontalLayout {
+        ProgressIndicator {
+          height: 10pt;
+          width: 100%;
+          progress: current-hp / max-hp;
+        }
+      }
+    }
+    // XP bar
+    Rectangle {
+      HorizontalLayout {
+        Text {
+          width: 25%;
+          color: #B8CD55;
+          font-size: 14pt;
+          text: "XP";
+        }
+        Text {
+          width: 50%;
+          color: #B8CD55;
+          font-size: 14pt;
+          text: current-xp + " / " + max-xp;
+        }
+      }
+    }
+    Rectangle {
+      HorizontalLayout {
+        ProgressIndicator {
+          height: 10pt;
+          width: 80%;
+          progress: (current-xp - old-xp-max) / (max-xp - old-xp-max);
+        }
+      }
+    }
+    // Wealth
+    Rectangle {
+      coins := Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 14pt;
+        text: "Coins: " + root.coins;
+      }
+    }
+    Rectangle {
+      height: 2%;
+    }
+    // Stats
+    Rectangle {
+      might := Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 14pt;
+        text: "Might: " + root.might;
+      }
+    }
+    Rectangle {
+      wit := Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 14pt;
+        text: "Wit: " + root.wit;
+      }
+    }
+    Rectangle {
+      skill := Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 14pt;
+        text: "Skill: " + root.skill;
+      }
+    }
+    Rectangle {
+      height: 2%;
+    }
+    Rectangle {
+      melee-title := Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 14pt;
+        text: "Melee Attack: " + root.melee-min-damage + "-" + root.melee-max-damage;
+      }
+    }
+    Rectangle {
+      Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 12pt;
+        text: "Crit chance: " + root.melee-crit-chance;
+      }
+    }
+    Rectangle {
+      height: 2%;
+    }
+    Rectangle {
+      ranged-title := Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 14pt;
+        text: "Ranged Attack: " + root.ranged-min-damage + "-" + root.ranged-max-damage;
+      }
+      
+    }
+    Rectangle {
+      Text {
+        horizontal-alignment: left;
+        width: 100%;
+        color: #B8CD55;
+        font-size: 12pt;
+        text: "Crit chance: " + ranged-crit-chance;
+      }
+    }
+    Rectangle {height: 5%; }
+    SpellInventory {
+      spell_names: root.spell_names;
+      spell_casts: root.spell_casts;
+      spell_damages: root.spell_damages;
+
+      received_input(command, x, y,) => {
+        root.received_input(command, x, y);
+      }
+    }
+    // Empty space below
+    Rectangle {height: 5%; }
+  }
+}
+
+
+component TextLog inherits Rectangle {
+
+  background: #B8CD55;
+  border-color: #69903B;
+
+  border-width: 4px;
+
+  text_box := Text {
+    x: parent.border-width + 2px; 
+    y: parent.border-width + 2px;
+    height: parent.height - (parent.border-width + 2px) * 2;
+    horizontal-alignment: left;
+    vertical-alignment: top;
+    color: #204631;
+
+    font-size: 12pt;
+  }
+
+  public function display_message(msg: string) {
+    text-box.text = msg + "\n" + text-box.text;
+  }
+}
+
+component PopUpBox inherits Rectangle {
+  in property <TextHorizontalAlignment> text-alignment;
+  in property <string> text;
+  in property <length> text-box-height;
+
+  background: #B8CD55;
+  border-color: #69903B;
+
+  border-width: 4px;
+
+  text_box := Text {
+    x: parent.border-width + 16px; 
+    y: parent.border-width + 2px;
+
+    height: text-box-height;
+    width: parent.width - (parent.border-width + 16px) * 2;
+
+    horizontal-alignment: text-alignment;
+    vertical-alignment: center;
+
+    text: text;
+    font-size: 16pt;
+    color: #204631;
+    wrap: word-wrap;
+  }
+  
+}
+
+export component MainWindow inherits Window {
+  background: #204631;
+
+  width: grid-width * tile-size * 1.25;
+  height: grid-height * tile-size * 1.25;
+
+  callback received_input(InputCommand, int, int, int);
+
+  // Map data
+  in property <length> tile_size;
+  in property <int> grid_width;
+  in property <int> grid_height;
+  in property <int> depth;
+
+  // Game data
+  in property <[TileGraphics]> memory_tiles;
+  in property <string> character-name;
+  in property <int> player-level;
+  in property <int> player-coins;
+  in property <int> player-health-current;
+  in property <int> player-health-max;
+  in property <int> player-xp-current;
+  in property <int> player-xp-goal;
+  in property <int> player-might;
+  in property <int> player-wit;
+  in property <int> player-skill;
+  in property <int> player-cunning;
+  in property <[int]> player-melee-damage;
+  in property <[int]> player-ranged-damage;
+  in property <float> player-melee-crit;
+  in property <float> player-ranged-crit;
+  
+  in property <[string]> spell_names;
+  in property <[[int]]> spell_casts;
+  in property <[[int]]> spell_damages;
+
+  // Level up data
+  in-out property <int> level_up_spell_id;
+  in-out property <string> level_up_spell_name;
+  in-out property <int> level_up_spell_image;
+
+  // UI state
+  in-out property <bool> keyboard_enabled: true;
+  in-out property <int> spell_index: -1;
+
+  HorizontalBox {
+    VerticalBox {
+      padding: 0;
+      map :=GameMap { 
+        tile-size: root.tile_size;
+        grid_height: root.grid_height;
+        grid_width: root.grid_width;
+        spell-mode: root.spell_index >= 0;
+    
+        memory_tiles: root.memory_tiles;
+    
+        received_input(command, x, y) => {
+          root.received_input(command, x, y, root.spell_index);
+          if command == InputCommand.Spell {
+            root.spell_index = -1;
+          }
+        }
+      }
+    
+      message_log := TextLog {}
+    }
+    stats := StatsDisplay {
+      depth: root.depth;
+      character-name: root.character-name;
+      level: player-level;
+      coins: player-coins;
+      current-hp: player-health-current;
+      max-hp: player-health-max;
+      current-xp: player-xp-current;
+      max-xp: player-xp-goal;
+      
+      might: player-might;
+      wit: player-wit;
+      skill: player-skill;
+
+      melee-min-damage: player-melee-damage[0];
+      melee-max-damage: player-melee-damage[1];
+      melee-crit-chance: player-melee-crit;
+
+      ranged-min-damage: player-ranged-damage[0];
+      ranged-max-damage: player-ranged-damage[1];
+      ranged-crit-chance: player-ranged-crit;
+
+      spell_names: root.spell_names;
+      spell_casts: root.spell_casts;
+      spell_damages: root.spell_damages;
+
+      received_input(command, x, y,) => {
+        root.received_input(command, x, y, -1);
+      }
+    }
+  }
+
+  intro-popup := PopupWindow {
+    close-on-click: false;
+
+    width: root.width;
+    height: root.height;
+
+    Rectangle {
+      background: #B8CD55;
+      border-color: #69903B;
+      border-width: 4px;
+
+      property <length> section-padding: 12px;
+      property <length> section-spacing: 6px;
+
+      HorizontalLayout {
+        padding: parent.border-width;
+
+        VerticalLayout {
+          width: 33%;
+          padding: section-padding;
+          spacing: section-spacing;
+          
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "RetroDungeon: a tech demo";
+            font-size: 16pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Custom ECS, custom interaction events, data driven design. Rendering/ui through slint.\n";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Controls";
+            font-size: 16pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Walk into something to attack or interact with it.\n";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Movement: w a s d\nShoot: right click\nAuto-walk: left click\n\nForce attack: ctrl + w a s d\nForce shoot: ctrl + right click\n";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Descend or Wait: spacebar\n";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "To cast a spell:\nPress the spell number, then left click where you want to cast it.";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "1: Fireball\n2: Scry";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+          Rectangle {}
+        }
+
+        VerticalLayout {
+          width: 34%;
+          padding: section-padding;
+          spacing: section-spacing;
+          // screenshot goes here, maybe two?
+          Rectangle {
+            height: 15%;
+            Text {
+              horizontal-alignment: center;
+              vertical-alignment: top;
+              text: "RetroDungeon";
+              font-size: 24pt;
+            }
+          }
+          Image {
+            source: @image-url("assets/screenshot.png");
+          }
+          Text {
+            horizontal-alignment: center;
+            vertical-alignment: top;
+            text: "Beware these guys.";
+            font-size: 14pt;
+
+          }
+          Rectangle {}
+          Rectangle {
+            height: 25%;
+            Button {
+              text: "Start";
+              
+              clicked => { 
+                //root.received_input(InputCommand.Start, 0, 0, -1); 
+                root.close_popups();
+              }
+            }
+          }
+        }
+
+        VerticalLayout {
+          width: 33%;
+          padding: section-padding;
+          spacing: section-spacing;
+
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Mechanics";
+            font-size: 16pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Hunt gold in an endless dungeon, and try your best to survive. Your resources are slowly dwindling, and will only come back by pushing forward.\n";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Might increase your melee damage.\nWit improves your spells.\nSkill increase your ranged damage.\n";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+          Text {
+            horizontal-alignment: left;
+            vertical-alignment: top;
+            text: "Your health restores when you level up.\n\nYour spells come back at the next floor.\n\nXp comes from gold, not monsters.\n\n";
+            wrap: word-wrap;
+            font-size: 14pt;
+          }
+
+          Rectangle {}
+        }
+      }
+    
+    }
+
+  }
+
+  death-popup := PopupWindow {
+    padding: 12px;
+    close-on-click: false;
+
+    width: 128px * 2;
+    height: 64px * 2;
+
+    x: map.width / 2 - 128px;
+    y: map.height / 2 - 64px;
+
+    PopUpBox {
+      text: "You have died!";
+      text-box-height: 64px;
+      text-alignment: center;
+
+      GridLayout {
+        spacing: 4px;
+        Row { Rectangle {} }
+        Row {
+          Rectangle { height: 60%; width: 15%;}
+          Rectangle {
+            height: 60%;
+  
+            new-game := Button {
+              //width: 24px;
+
+              text: "New Game";
+              clicked => { 
+                root.received_input(InputCommand.Restart, 0, 0, -1);
+                root.close_popups();
+              }
+            }
+          }
+          Rectangle {
+            height: 60%;
+  
+            quit := Button {
+              //width: 24px;
+
+              text: "Quit";
+              clicked => { 
+                root.received_input(InputCommand.Quit, 0, 0, -1); 
+                root.close_popups();
+              }
+            }
+          }
+          Rectangle { height: 60%; width: 15%;}
+        }
+      }
+    }
+  }
+
+  level-up-popup := PopupWindow {
+
+    padding: 12px;
+    close-on-click: false;
+
+    width: 128px * 2;
+    height: 128px * 2;
+
+    x: map.width / 2 - 128px;
+    y: map.height / 2 - 128px;
+
+    PopUpBox {
+      text: "You have leveled up!";
+      text-box-height: 64px;
+      text-alignment: center;
+
+      GridLayout {
+        spacing: 4px;
+        // Empty space at top
+        Row { Rectangle { height: 25%;} }
+        // Might option
+        Row {
+          Rectangle { width: 15%;}
+          Rectangle {
+            Button {
+              text: "Might up";
+              clicked => {
+                // Adjust Might (0) by positive 1
+                root.received_input(InputCommand.LevelUp, 0, 1, -1);
+                root.close_popups();
+              }
+            }
+          }
+          Rectangle { width: 15%;}
+        }
+        // Wit option
+        Row {
+          Rectangle { width: 15%;}
+          Rectangle {
+            Button {
+              text: "Wit up";
+              clicked => {
+                // Adjust Might (0) by positive 1
+                root.received_input(InputCommand.LevelUp, 1, 1, -1);
+                root.close_popups();
+              }
+            }
+          }
+          Rectangle { width: 15%;}
+        }
+        // Skill option
+        Row {
+          Rectangle { width: 15%;}
+          Rectangle {
+            Button {
+              text: "Skill up";
+              clicked => {
+                // Adjust Skill (1) by positive 1
+                root.received_input(InputCommand.LevelUp, 2, 1, -1);
+                root.close_popups();
+              }
+            }
+          }
+          Rectangle { width: 15%;}
+        }
+        Row { Rectangle { height: 15%;} }
+      }
+    }
+  }
+
+  keyboard_handler := FocusScope {
+
+    key-pressed(event) => {
+      if (event.text == "w" && parent.keyboard_enabled && event.modifiers.control) {
+        received-input(InputCommand.ForceAttack, 0, -1, -1);
+      } else if (event.text == "a" && parent.keyboard_enabled && event.modifiers.control) {
+        received-input(InputCommand.ForceAttack, -1, 0, -1);
+      } else if (event.text == "s" && parent.keyboard_enabled && event.modifiers.control) {
+        received-input(InputCommand.ForceAttack, 0, 1, -1);
+      } else if (event.text == "d" && parent.keyboard_enabled && event.modifiers.control) {
+        received-input(InputCommand.ForceAttack, 1, 0, -1);
+      } else if (event.text == "w" && parent.keyboard_enabled) {
+        received-input(InputCommand.Direction, 0, -1, -1);
+      } else if (event.text == "a" && parent.keyboard_enabled) {
+        received-input(InputCommand.Direction, -1, 0, -1);
+      } else if (event.text == "s" && parent.keyboard_enabled) {
+        received-input(InputCommand.Direction, 0, 1, -1);
+      } else if (event.text == "d" && parent.keyboard_enabled) {
+        received-input(InputCommand.Direction, 1, 0, -1);
+      } else if (event.text == " " && parent.keyboard_enabled) {
+        received-input(InputCommand.Wait, 0, 0, -1);
+      } else if (event.text == ">" && parent.keyboard_enabled) {
+        received-input(InputCommand.Descend, 0, 0, -1);
+      } else if (event.text == "1" && parent.keyboard_enabled) {
+        root.spell_index = 0;
+      } else if (event.text == "2" && parent.keyboard_enabled) {
+        root.spell_index = 1;
+      }
+      accept
+    }
+  }
+
+  public function display_message(msg: string) {
+    message-log.display_message(msg);
+  }
+
+  public function display_death_popup() {
+    self.keyboard_enabled = false;
+    death-popup.show();
+  }
+
+  public function display_level_up_popup() {
+    self.keyboard_enabled = false;
+    // self.level_up_spell_id = spell_id;
+    // self.level_up_spell_name = spell_name;
+    // self.level_up_spell_image = spell_image;
+    level-up-popup.show();
+  }
+
+  public function display_intro_popup() {
+    self.keyboard_enabled = false;
+    intro-popup.show();
+  }
+
+  public function close_popups() {
+    level-up-popup.close();
+    death-popup.close();
+    self.keyboard_enabled = true;
+  }
+}
