@@ -38,10 +38,10 @@ pub const STAIRS_SPAWNENTRY: SpawnEntryID = SpawnEntryID(1);
 
 pub const TILESET_SIZE: f32 = 32.0;
 
-const TILES_PATH: &'static str = "tiles.yaml";
-const SPAWNABLES_PATH: &'static str = "spawnables.yaml";
-const SPAWN_ENTRY_PATH: &'static str = "spawnentries.yaml";
-const ROOM_TEMPLATE_PATH: &'static str = "roomtemplates.yaml";
+const TILES_PATH: &'static str = "data/tiles.yaml";
+const SPAWNABLES_PATH: &'static str = "data/spawnables.yaml";
+const SPAWN_ENTRY_PATH: &'static str = "data/spawnentries.yaml";
+const ROOM_TEMPLATE_PATH: &'static str = "data/roomtemplates.yaml";
 
 #[derive(Default)]
 pub struct ResourceManager {
