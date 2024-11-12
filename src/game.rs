@@ -479,7 +479,7 @@ impl Game {
             .is_some();
 
         if !location_has_stairs {
-            return Err("No stairs here.".into());
+            return Err(Error::InvalidTarget);
         }
 
         let new_depth = self.map.depth + 1;
