@@ -31,7 +31,7 @@ cargo build --release --features "femtovg skia"
 ```
 After compiling with cargo you need to copy the contents of the data folder into a data folder in your build directory (target/release/ by default).
 
-You can also modify the bash build script by simply replacing the line that calls cargo with the lines above. 
+If you prefer, you can alter the build.sh script to call cargo with the correct backend and let it move the game files for you. 
 
 ## Dependencies
 Femtosvg requires OpenGL2.0. 
