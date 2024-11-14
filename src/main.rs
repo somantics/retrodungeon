@@ -19,20 +19,20 @@ pub mod world;
 use crate::error::Result;
 
 fn main() -> Result<()> {
-    CombinedLogger::init(vec![
-        // TermLogger::new(
-        //     LevelFilter::Debug,
-        //     Config::default(),
-        //     TerminalMode::Mixed,
-        //     ColorChoice::Auto,
-        // ),
-        WriteLogger::new(
-            LevelFilter::Info,
-            Config::default(),
-            File::create("game.log").unwrap(),
-        ),
-    ])
-    .unwrap();
+    // CombinedLogger::init(vec![
+    //     TermLogger::new(
+    //         LevelFilter::Debug,
+    //         Config::default(),
+    //         TerminalMode::Mixed,
+    //         ColorChoice::Auto,
+    //     ),
+    //     WriteLogger::new(
+    //         LevelFilter::Info,
+    //         Config::default(),
+    //         File::create("game.log").unwrap(),
+    //     ),
+    // ])
+    // .unwrap();
 
     let resources = Rc::new(resources::ResourceManager::new()?);
     let game = Game::new(&resources)?;

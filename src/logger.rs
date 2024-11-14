@@ -7,6 +7,26 @@ thread_local!(
     pub static LOG: MessageLog = MessageLog::new();
 );
 
+/* ATTACK LOG FORMATS
+generate_attack_message:
+    [attacker_name] [hit_message] [defender_name] [damage listing] ([addendum])
+
+    Example:
+        [Bat] [bit] [Hero] [for 3 damage.] [You are now poisoned.]
+
+generate_take_damage_message:
+    [defender_name] [damage listing] ([addendum])
+
+    Example:
+        [Bat] [took 15 damage.] [It's super effective.]
+
+Currently addendums are only used to indicate damage resistance or vulnerabilities.
+If a None value is passed for a name, it will be substituted with "Someone".
+
+The templates refering to burning or fire are deprecated.
+ */ 
+
+
 pub struct MessageLog {
     message_queue: RefCell<VecDeque<String>>,
 }

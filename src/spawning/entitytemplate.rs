@@ -341,6 +341,7 @@ impl EntityTemplate for DoorTemplate {
     fn add_components(&self, entity: usize, world: &mut World, _depth: u32, _resources: &ResourceManager) -> Result<()> {
         let default_resonse = InteractResponse {
             args: HashMap::new(),
+            msg_args: HashMap::new(),
             response: ResponseFuctionName::OpenDoor,
         };
         let image_states = self.image_states.clone();

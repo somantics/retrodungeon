@@ -1,10 +1,9 @@
 use log::{debug, warn};
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
-use slint::ModelRc;
 
 use crate::component::tags::Player;
-use crate::event::combat_events::{ARG_DAMAGE_MULTIPLIER, ARG_DAMAGE_MULTIPLIER_OVERRIDE};
+use crate::event::argument_names::{ARG_DAMAGE_MULTIPLIER, ARG_DAMAGE_MULTIPLIER_OVERRIDE};
 use crate::event::spell_events::SpellEvent;
 use crate::event::{Event, EventArguments};
 use crate::game::RANGE_EPSILON;
@@ -281,7 +280,7 @@ fn apply_spell_damage(
     damage: DamageRange<u32>,
     event_data: EventArguments,
 ) -> Result<()> {
-    let EventArguments { world, map, resources, source, target, args } = event_data;
+    let EventArguments { world, map, resources, source, target, args, msg_args } = event_data;
 
     let mut message_addendum = "";
     let mut damage = thread_rng().gen_range(damage.0..=damage.1) as f64;

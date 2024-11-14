@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use log::debug;
+
 use crate::{
     component::{
         attributes::Xp, responses::InteractResponse, image::ImageState, items::Coins, Collision,
@@ -13,49 +15,30 @@ use crate::{
     world::World,
 };
 
-use super::{Event, EventArguments, EventResponse, ResponseArguments, ResponseFuctionName};
+use super::{argument_names::{MSG_ARG_ATTACKER, MSG_ARG_ATTACK_MESSAGE}, Event, EventArguments, EventResponse, ResponseArguments, ResponseFuctionName};
 use crate::error::Result;
 
 pub fn respond_default<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
-    let event_data = EventArguments::new_from(event.source(), response_data.entity, args, response_data);
+    let event_data = EventArguments::new_from(event.source(), response_data.entity, args, msg_args, response_data);
     event.apply(event_data)
 }
-
-// pub fn make_reflect_response<F, T: EventResponse>(chance: f64) -> impl Fn(
-//     &mut World,
-//     &mut GameMap,
-//     &ResourceManager,
-//     &dyn Event<Response = T>,
-//     usize,
-//     &HashMap<String, f64>,
-// ) -> Result<()>
-// {
-//     move |
-//         world: &mut World,
-//         map: &mut GameMap,
-//         resources: &ResourceManager,
-//         event: &dyn Event<Response = T>,
-//         entity: usize,
-//         args: &HashMap<String, f64>
-//         | 
-//     {
-//         match thread_rng().gen_bool(chance) {
-//             true => respond_reflect(world, map, resources, event, entity, args),
-//             false => respond_default(world, map, resources, event, entity, args)
-//         }
-//     }
-// }
 
 pub fn respond_reflect<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
-    let event_data = EventArguments::new_from(response_data.entity, event.source(), args, response_data);
+    let mut reflect_msg_args = msg_args.clone();
+    reflect_msg_args.insert(MSG_ARG_ATTACK_MESSAGE.into(), "reflected your attack".into());
+    reflect_msg_args.insert(MSG_ARG_ATTACKER.into(), response_data.entity.to_string());
+
+    let event_data = EventArguments::new_from(event.source(), event.source(), args, &reflect_msg_args, response_data);
     event.apply(event_data)
 }
 
@@ -63,6 +46,7 @@ pub fn respond_open_door<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
     let ResponseArguments { world, map, resources, entity } = response_data;
 
@@ -77,6 +61,7 @@ pub fn respond_open_door<T: EventResponse>(
         response_data.entity, 
         event.source(), 
         args, 
+        msg_args,
         world, 
         map, 
         resources
@@ -88,6 +73,7 @@ pub fn respond_open_chest<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
     let ResponseArguments { world, map, resources, entity } = response_data;
     give_coins(entity, event.source(), world)?;
@@ -99,6 +85,7 @@ pub fn respond_open_chest<T: EventResponse>(
         response_data.entity, 
         event.source(), 
         args, 
+        msg_args, 
         world, 
         map, 
         resources
@@ -110,6 +97,7 @@ pub fn respond_close<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
     let ResponseArguments { world, map, resources, entity } = response_data;
     change_collision(entity, Passable::Walk, world)?;
@@ -121,6 +109,7 @@ pub fn respond_close<T: EventResponse>(
         response_data.entity, 
         event.source(), 
         args, 
+        msg_args, 
         world, 
         map, 
         resources
@@ -132,6 +121,7 @@ pub fn respond_reveal_room<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
     let ResponseArguments { world, map, resources, entity } = response_data;
     explore_room_of_entity(entity, &world, map, resources)?;
@@ -140,6 +130,7 @@ pub fn respond_reveal_room<T: EventResponse>(
         response_data.entity, 
         event.source(), 
         args, 
+        msg_args, 
         world, 
         map, 
         resources
@@ -151,6 +142,7 @@ pub fn respond_pickup<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
     let ResponseArguments { world, map, resources, entity } = response_data;
     give_coins(entity, event.source(), world)?;
@@ -160,6 +152,7 @@ pub fn respond_pickup<T: EventResponse>(
         response_data.entity, 
         event.source(), 
         args, 
+        msg_args, 
         world, 
         map, 
         resources
@@ -175,6 +168,7 @@ pub fn respond_drop<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
     let ResponseArguments { world, map, resources, entity } = response_data;
     if let Some(Position(location)) = world.borrow_entity_component::<Position>(entity) {
@@ -185,6 +179,7 @@ pub fn respond_drop<T: EventResponse>(
         response_data.entity, 
         event.source(), 
         args, 
+        msg_args, 
         world, 
         map, 
         resources
@@ -196,6 +191,7 @@ pub fn respond_levelup<T: EventResponse>(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()> {
     let ResponseArguments { world, map, resources, entity } = response_data;
     give_full_xp(entity, event.source(), world)?;
@@ -204,6 +200,7 @@ pub fn respond_levelup<T: EventResponse>(
         response_data.entity, 
         event.source(), 
         args, 
+        msg_args, 
         world, 
         map, 
         resources
@@ -293,7 +290,7 @@ fn give_coins(own_entity: usize, other_entity: usize, world: &mut World) -> Resu
         return Err("No coin vector found".into());
     };
 
-    let Some(own_coins) = coins_vec[own_entity] else {
+    let Some(Coins(amount)) = coins_vec[own_entity] else {
         return Err("No coins to give".into());
     };
 
@@ -301,9 +298,11 @@ fn give_coins(own_entity: usize, other_entity: usize, world: &mut World) -> Resu
         return Err("No coin purse to give to".into());
     };
 
-    *their_coins += own_coins;
+    *their_coins += Coins(amount);
 
-    let Coins(amount) = own_coins;
+    if let Some(ref mut own_coins) = coins_vec[own_entity] {
+        own_coins.0 = 0;
+    };
 
     if let Some(xp) = world.borrow_entity_component_mut::<Xp>(other_entity) {
         xp.current += amount;
@@ -327,13 +326,22 @@ fn _give_inventory(_own_entity: usize, _other_entity: usize, _world: &mut World)
 
 
 fn drop_coins(own_entity: usize, location: Coordinate, world: &mut World, map: &GameMap, resources: &ResourceManager) -> Result<()> {
-    let templates = resources.get_entity_templates(resources::GOLD_PILE_SPAWNABLE);
-    let gold_pile = world.spawn_from_templates(&templates, map.depth, location, resources)?;
-
     let Some(own_coins) = world.borrow_entity_component::<Coins>(own_entity) else {
         return Err("No coins to drop".into());
     };
     let Coins(amount) = own_coins.clone();
+
+
+    debug!("Coins to drop: {amount}");
+
+    if amount == 0 {
+        debug!("No coins detected.");
+        return Ok(());
+    }
+
+    let templates = resources.get_entity_templates(resources::GOLD_PILE_SPAWNABLE);
+    let gold_pile = world.spawn_from_templates(&templates, map.depth, location, resources)?;
+
 
     let Some(Coins(pile_amount)) = world.borrow_entity_component_mut::<Coins>(gold_pile) else {
         return Err("No coins on new gold pile".into());

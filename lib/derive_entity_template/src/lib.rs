@@ -48,7 +48,7 @@ fn impl_derive_event_response(ast: &syn::DeriveInput) -> TokenStream {
                 response_data: ResponseArguments,
             ) -> Result<()> {
                 let callable = self.response.get_callable()?;
-                (callable)(event, response_data, &self.args)
+                (callable)(event, response_data, &self.args, &self.msg_args)
             }
         }
     };

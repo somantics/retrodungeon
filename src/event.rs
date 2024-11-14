@@ -14,6 +14,7 @@ pub mod interact_events;
 pub mod combat_events;
 pub mod spell_events;
 pub mod stealth_events;
+pub mod argument_names;
 
 
 // All events send a payload of code to run, and source entity
@@ -74,6 +75,7 @@ type ResponseFunction<T> = fn(
     event: &dyn Event<Response = T>,
     response_data: ResponseArguments,
     args: &HashMap<String, f64>,
+    msg_args: &HashMap<String, String>,
 ) -> Result<()>;
 
 impl ResponseFuctionName {
@@ -105,25 +107,28 @@ pub struct EventArguments<'a> {
     pub source: usize,
     pub target: usize,
     pub args: &'a HashMap<String, f64>,
+    pub msg_args: &'a HashMap<String, String>,
 }
 
 impl<'a> EventArguments<'a> {
 
-    pub fn new(source: usize, target: usize, args: &'a HashMap<String, f64>, world: &'a mut World, map: &'a mut GameMap, resources: &'a ResourceManager) -> Self {
+    pub fn new(source: usize, target: usize, args: &'a HashMap<String, f64>, msg_args: &'a HashMap<String, String>, world: &'a mut World, map: &'a mut GameMap, resources: &'a ResourceManager) -> Self {
         Self {
             source,
             target,
             args,
+            msg_args,
             world: world,
             map: map,
             resources: resources,
         }
     }
-    pub fn new_from(source: usize, target: usize, args: &'a HashMap<String, f64>, response_data: ResponseArguments<'a>) -> Self {
+    pub fn new_from(source: usize, target: usize, args: &'a HashMap<String, f64>, msg_args: &'a HashMap<String, String>, response_data: ResponseArguments<'a>) -> Self {
         Self {
             source,
             target,
             args,
+            msg_args,
             world: response_data.world,
             map: response_data.map,
             resources: response_data.resources,

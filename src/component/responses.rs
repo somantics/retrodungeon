@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use derive_entity_template::EventResponse;
 use serde::{Deserialize, Serialize};
 
-use crate::event::{combat_events::ARG_DAMAGE_MULTIPLIER, Event, EventResponse, ResponseFuctionName, EventArguments, ResponseArguments};
+use crate::event::{argument_names::ARG_DAMAGE_MULTIPLIER, Event, EventResponse, ResponseFuctionName, EventArguments, ResponseArguments};
 
 use crate::error::Result;
 
@@ -11,6 +11,7 @@ use crate::error::Result;
 #[derive(Debug, Clone, Serialize, Default, Deserialize, EventResponse)]
 pub struct SpellResponse {
     args: HashMap<String, f64>,
+    msg_args: HashMap<String, String>,
     response: ResponseFuctionName,
 }
 
@@ -18,6 +19,7 @@ pub struct SpellResponse {
 pub struct NoiseResponse {
     pub threshold: u32,
     args: HashMap<String, f64>,
+    msg_args: HashMap<String, String>,
     response: ResponseFuctionName,
 }
 
@@ -30,6 +32,7 @@ impl NoiseResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, EventResponse)]
 pub struct AttackResponse {
     args: HashMap<String, f64>,
+    msg_args: HashMap<String, String>,
     response: ResponseFuctionName,
 }
 
@@ -40,13 +43,15 @@ impl AttackResponse {
 
         Self {
             args,
+            msg_args: HashMap::default(),
             response: ResponseFuctionName::Default,
         }
     }
 
-    pub fn new_with_args(args: HashMap<String, f64>) -> Self {
+    pub fn new_with_args(args: HashMap<String, f64>, msg_args: HashMap<String, String>,) -> Self {
         Self {
             args,
+            msg_args,
             response: ResponseFuctionName::Default,
         }
     }
@@ -54,6 +59,7 @@ impl AttackResponse {
     pub fn new_reflect() -> Self {
         Self {
             args: HashMap::new(),
+            msg_args: HashMap::default(),
             response: ResponseFuctionName::ReflectAll,
         }
     }
@@ -63,6 +69,7 @@ impl AttackResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, EventResponse)]
 pub struct ShootResponse {
     args: HashMap<String, f64>,
+    msg_args: HashMap<String, String>,
     response: ResponseFuctionName,
 }
 
@@ -73,13 +80,15 @@ impl ShootResponse {
 
         Self {
             args,
+            msg_args: HashMap::default(),
             response: ResponseFuctionName::Default,
         }
     }
 
-    pub fn new_with_args(args: HashMap<String, f64>) -> Self {
+    pub fn new_with_args(args: HashMap<String, f64>, msg_args: HashMap<String, String>,) -> Self {
         Self {
             args,
+            msg_args,
             response: ResponseFuctionName::Default,
         }
     }
@@ -87,6 +96,7 @@ impl ShootResponse {
     pub fn new_reflect() -> Self {
         Self {
             args: HashMap::new(),
+            msg_args: HashMap::default(),
             response: ResponseFuctionName::ReflectAll,
         }
     }
@@ -95,12 +105,14 @@ impl ShootResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, EventResponse)]
 pub struct InteractResponse {
     pub args: HashMap<String, f64>,
+    pub msg_args: HashMap<String, String>,
     pub response: ResponseFuctionName,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, EventResponse)]
 pub struct PickupResponse {
     pub args: HashMap<String, f64>,
+    pub msg_args: HashMap<String, String>,
     pub response: ResponseFuctionName,
 }
 
@@ -108,6 +120,7 @@ impl Default for PickupResponse {
     fn default() -> Self {
         Self {
             args: HashMap::default(),
+            msg_args: HashMap::default(),
             response: ResponseFuctionName::Pickup,
         }
     }
@@ -117,6 +130,7 @@ impl Default for PickupResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, EventResponse)]
 pub struct DeathResponse {
     pub args: HashMap<String, f64>,
+    pub msg_args: HashMap<String, String>,
     pub response: ResponseFuctionName,
 }
 
