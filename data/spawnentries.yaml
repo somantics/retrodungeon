@@ -1,0 +1,232 @@
+# SPECIAL
+
+- id: 0 # player
+  category: !Concrete
+    spawnable: 4
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+    - AwayFromWall
+
+- id: 1 # stairs
+  category: !Concrete
+    spawnable: 3
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+    - ByWall
+
+# WOLVES
+
+- id: 10 # single doggo
+  category: !Concrete
+    spawnable: 1
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+    - AwayFromWall
+
+- id: 11 # small colony doggo
+  category: !Concrete
+    spawnable: 1
+    min_amount: 2
+    max_amount: 2
+    location_requirements:
+    - AwayFromDoor
+    - AwayFromWall
+
+- id: 12 # large colony doggo
+  category: !Concrete
+    spawnable: 1
+    min_amount: 2
+    max_amount: 4
+    location_requirements:
+    - AwayFromDoor
+    - AwayFromWall
+
+# BATS  
+
+- id: 20 # single batbat
+  category: !Concrete
+    spawnable: 2
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+    - ByWall
+
+- id: 21 # small colony bats
+  category: !Concrete
+    spawnable: 2
+    min_amount: 2
+    max_amount: 3
+    location_requirements:
+    - AwayFromDoor
+
+- id: 22 # large colony bats
+  category: !Concrete
+    spawnable: 2
+    min_amount: 3
+    max_amount: 4
+    location_requirements:
+    - AwayFromDoor
+
+# SKELETONS & MAGES
+
+- id: 30 # single skeleton
+  category: !Concrete
+    spawnable: 6
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+    - AwayFromWall
+
+- id: 31 # some of skeleton
+  category: !Concrete
+    spawnable: 6
+    min_amount: 1
+    max_amount: 2
+    location_requirements:
+    - AwayFromDoor
+    - AwayFromWall
+
+- id: 32 # single mage
+  category: !Concrete
+    spawnable: 11
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+    - AwayFromWall
+
+- id: 33 # small skeleton room excluding mage
+  category: !Selection
+    sub_entries:
+    - 30
+    - 31
+
+- id: 34 # small skeleton room including mage
+  category: !Selection
+    sub_entries:
+    - 30
+    - 31
+    - 32
+
+- id: 35 # medium skeleton room
+  category: !Union
+    sub_entries:
+    - 33
+    - 34
+
+- id: 36 # large mage room
+  category: !Union
+    sub_entries:
+    - 34
+    - 34
+
+# DECORATION
+
+- id: 40 # maybe a single corpse
+  category: !Concrete
+    spawnable: 8
+    min_amount: 0
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+
+- id: 41 # some corpses
+  category: !Concrete
+    spawnable: 8
+    min_amount: 1
+    max_amount: 3
+    location_requirements:
+    - AwayFromDoor
+    - ByWall
+
+- id: 42 # tombstone
+  category: !Concrete
+    spawnable: 13
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+    - AwayFromWall
+
+# TREASURES
+
+- id: 50 # single gold pile
+  category: !Concrete
+    spawnable: 5 # gold pile
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+
+- id: 51 # some gold pile
+  category: !Concrete
+    spawnable: 5 # gold pile
+    min_amount: 1
+    max_amount: 2
+    location_requirements:
+    - AwayFromDoor
+
+- id: 52 #  single chest
+  category: !Concrete
+    spawnable: 10 # gold pile
+    min_amount: 1
+    max_amount: 1
+    location_requirements:
+    - AwayFromDoor
+    - ByWall
+
+- id: 53 #  medium single chest
+  category: !Union
+    sub_entries:
+    - 52
+    - 51
+
+- id: 54 #  medium two chests
+  category: !Concrete
+    spawnable: 10 # gold pile
+    min_amount: 2
+    max_amount: 2
+    location_requirements:
+    - AwayFromDoor
+    - ByWall
+
+# TREASURE CATEGORIES
+
+- id: 60 #  tiny treasure
+  category: !Union
+    sub_entries:
+    - 50
+
+- id: 61 #  small treasure
+  category: !Selection
+    sub_entries:
+    - 51
+    - 51
+    - 52
+
+- id: 62 #  medium treasure
+  category: !Selection
+    sub_entries:
+    - 53
+    - 53
+    - 54
+
+- id: 63 #  large treasure
+  category: !Union
+    sub_entries:
+    - 61
+    - 62
+
+- id: 64 #  horde
+  category: !Union
+    sub_entries:
+    - 62
+    - 62
