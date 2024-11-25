@@ -34,10 +34,12 @@ After compiling with cargo you need to copy the contents of the data folder into
 If you prefer, you can alter the build.sh script to call cargo with the correct backend and let it move the game files for you. 
 
 ## Dependencies
-Femtosvg requires OpenGL2.0. 
-Skia may require additional build tools. 
+On linux:
+libstdc++ development packages
+fontconfig development packages
+freetype development packages, including for 32bit
 
 ## Platform support
 Slint boasts support for Windows, linux, mac, and more. 
 
-Tested on linux on both wayland and x11. (Manjaro 24, openSuse Leap 15.6, Ubuntu 24.04) 
+Tested on linux on both wayland and x11. (Manjaro 24, openSuse Leap 15.6 & Tumbleweed, Ubuntu 24.04) 
