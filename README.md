@@ -35,9 +35,9 @@ If you prefer, you can alter the build.sh script to call cargo with the correct 
 
 ## Dependencies
 On linux:
-libstdc++ development packages
-fontconfig development packages
-freetype development packages, including for 32bit
+- libstdc++ development packages
+- fontconfig development packages
+- freetype development packages, including for 32bit
 
 ## Platform support
 Slint boasts support for Windows, linux, mac, and more. 
